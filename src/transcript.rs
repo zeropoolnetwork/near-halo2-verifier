@@ -63,7 +63,7 @@ impl<S> NearTranscript<G1Affine, NearLoader, S, Vec<u8>>
 ///
 /// ```
 ///	use snark_verifier::util::hash::{Digest, Keccak256};
-///	# use zeropool_near_pool::verifiers::plonk::transcript::near_keccak256;
+///	# use near_halo2_verifier::transcript::near_keccak256;
 ///
 ///	let v : Vec<u8> = "hello world".as_bytes().into();
 ///

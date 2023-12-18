@@ -1,4 +1,4 @@
-use halo2_curves::bn256::{G1Affine, Bn256};
+use halo2_curves::bn256::{G1Affine, Bn256, G2Affine};
 use snark_verifier::{
     pcs::{
         kzg::{KzgAccumulator, KzgAs, KzgDecidingKey},
@@ -8,10 +8,10 @@ use snark_verifier::{
 };
 use std::fmt::Debug;
 
-use crate::verifiers::util::alt_bn128_pairing_check;
+use crate::util::alt_bn128_pairing_check;
 
 use super::{
-    loader::{NearLoader, g1_into_near, g2_into_near},
+    loader::{NearLoader},
     multi_miller_loop::NearBn256,
 };
 
@@ -26,12 +26,12 @@ where
         dk: &Self::DecidingKey,
         KzgAccumulator { lhs, rhs }: KzgAccumulator<G1Affine, NearLoader>,
     ) -> Result<(), Error> {
-        let terms = [(&lhs.0, &dk.g2.into()), (&rhs.0, &(-dk.s_g2).into())];
+        let terms : [(_, &G2Affine); 2] = [(&lhs.0, &dk.g2.into()), (&rhs.0, &(-dk.s_g2).into())];
         alt_bn128_pairing_check(
             terms.iter()
                  .map(
                      |(&g1, &g2)|
-                     (g1_into_near(&g1), g2_into_near(&g2))
+                     (g1.clone(), g2.clone())
                  )
                  .collect()
         )

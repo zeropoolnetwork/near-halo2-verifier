@@ -21,13 +21,7 @@ extern crate derive_more;
 use derive_more::{Add, AddAssign, Sub, SubAssign};
 use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use crate::verifiers::util::{
-    alt_bn128_g1_multiexp,
-    Fr as NearFr,
-    Fq as NearFq,
-    G1 as NearG1,
-    G2 as NearG2,
-};
+use crate::util::alt_bn128_g1_multiexp;
 
 /// This type is used as [LoadedScalar] for our [NearLoader].
 ///
@@ -40,99 +34,8 @@ use crate::verifiers::util::{
 #[derive(Clone, Debug, PartialEq, BorshSerialize, BorshDeserialize, Add, AddAssign, Sub, SubAssign)]
 pub struct NearLoadedFr(pub Fr);
 
-/// Convert halo2's Fr representation into format used by NEAR precompiled
-/// contracts.
-pub fn fr_from_near(v: NearFr) -> Fr {
-    Fr::from_bytes(&v.to_little_endian().try_into().unwrap()).unwrap()
-}
-
-/// Convert Fr from NEAR's precompiled contract representation into halo2's.
-pub fn fr_into_near(v: &Fr) -> NearFr {
-    NearFr::from_little_endian(&v.to_bytes())
-}
-
-impl From<NearFr> for NearLoadedFr {
-    fn from(v: NearFr) -> Self {
-        NearLoadedFr(fr_from_near(v))
-    }
-}
-
-impl Into<NearFr> for &NearLoadedFr {
-    fn into(self) -> NearFr {
-        fr_into_near(&self.0)
-    }
-}
-
-/// Convert halo2's Fq representation into format used by NEAR precompiled
-/// contracts.
-pub fn fq_from_near(v: NearFq) -> Fq {
-    Fq::from_bytes(&v.to_little_endian().try_into().unwrap()).unwrap()
-}
-
-/// Convert Fq from NEAR's precompiled contract representation into halo2's.
-pub fn fq_into_near(v: &Fq) -> NearFq {
-    NearFq::from_little_endian(&v.to_bytes())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::num::uint_from_u64;
-
-    #[test]
-    fn test_fq_conv_inv() {
-        let v : Fq = (0xdeadbeef as u64).into();
-        let u : NearFq = uint_from_u64(0xdeadbeef);
-
-        {
-            let u_ = fq_from_near(u);
-            assert_eq!(&v, &u_);
-        }
-        {
-            let v_ = fq_into_near(&v);
-            assert_eq!(&u, &v_);
-        }
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, BorshSerialize, BorshDeserialize)]
 pub struct NearLoadedG1(pub G1Affine);
-
-/// From NEAR precompiled contract representation to halo2's
-pub fn g1_from_near([x, y]: NearG1) -> G1Affine {
-    let x = fq_from_near(x);
-    let y = fq_from_near(y);
-    G1Affine {
-        x: x.into(),
-        y: y.into(),
-    }
-}
-
-/// From halo2 representation into NEAR precompiled contract
-pub fn g1_into_near(G1Affine { x, y }: &G1Affine) -> NearG1 {
-    [fq_into_near(x), fq_into_near(y)]
-}
-
-/// Convert representation of [alt_bn128_pairing_check] into halo2's.
-pub fn g2_from_near([x_c0, x_c1, y_c0, y_c1]: NearG2) -> G2Affine {
-    // x_real, x_im, y_real, y_im
-    //
-    // c_0 - real, c1 - im
-    G2Affine {
-        x: Fq2 { c0: fq_from_near(x_c0), c1: fq_from_near(x_c1) },
-        y: Fq2 { c0: fq_from_near(y_c0), c1: fq_from_near(y_c1) },
-    }
-}
-
-/// Convert halo2's representation into one compatible with [alt_bn128_pairing_check].
-pub fn g2_into_near(G2Affine { x, y }: &G2Affine) -> NearG2 {
-    [
-        fq_into_near(&x.c0),
-        fq_into_near(&x.c1),
-        fq_into_near(&y.c0),
-        fq_into_near(&y.c1),
-    ]
-}
 
 /// Loader that offloads pairing and multiexp operations to NEAR precompiled contracts.
 /// It's based on [snark_verifier::loader::native::NativeLoader].
@@ -248,10 +151,10 @@ impl EcPointLoader<G1Affine> for NearLoader {
     ) -> NearLoadedG1 {
         let pairs : Vec<_> = pairs
             .into_iter()
-            .map(|(scalar, NearLoadedG1(g))| (g1_into_near(g), (*scalar).into()))
+            .map(|(NearLoadedFr(scalar), NearLoadedG1(g))| (g.clone(), (*scalar)))
             .collect();
         let res = alt_bn128_g1_multiexp(&pairs);
-        NearLoadedG1(g1_from_near(res))
+        NearLoadedG1(res)
     }
 }
 
