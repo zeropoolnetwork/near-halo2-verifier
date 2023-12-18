@@ -1,0 +1,75 @@
+[package]
+name = "near-halo2-verifier"
+version = "1.0.0"
+authors = ["Ivan Oleynikov <ivan.oleynikov95@gmail.com>"]
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+borsh = "0.9.3"
+near-sdk = { git = "https://github.com/zeropoolnetwork/near-sdk-rs", branch = "feature/alt_bn128_new", features = ["unstable"] }
+near-contract-standards = { git = "https://github.com/zeropoolnetwork/near-sdk-rs", branch = "feature/alt_bn128_new" }
+# ed25519-dalek = "1.0.1"
+# num-derive = "0.3.3"
+# num-traits = "0.2.15"
+# ff-uint = { version = "0.2.4", default-features = false }
+# serde = "1.0.145"
+# serde_json = { version = "1.0.73", optional = true }
+fawkes-crypto = { git = "https://github.com/zeropoolnetwork/fawkes-crypto", branch = "near-plonk-verifier", features = ["borsh_support", "plonk"], default-features = false, optional = true }
+
+# One could get rid of these two, we barely use them:
+derive_more = { version = "0.99.17", optional = true }
+lazy_static = { version = "1.4.0", optional = true }
+
+[dependencies.halo2_curves]
+git = "https://github.com/zeropoolnetwork/halo2curves"
+branch = "zeropool-near"
+package = "halo2curves"
+optional = true
+
+[patch."https://github.com/privacy-scaling-explorations/halo2curves"]
+halo2curves = { git = "https://github.com/zeropoolnetwork/halo2curves", branch = "zeropool-near" }
+
+[dependencies.halo2_proofs]
+git = "https://github.com/privacy-scaling-explorations/halo2"
+tag = "v2023_04_20"
+optional = true
+
+[dependencies.snark_verifier]
+git = "https://github.com/zeropoolnetwork/snark-verifier"
+package = "snark-verifier"
+branch ="zeropool-near"
+features = []
+optional = true
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+overflow-checks = true
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[dev-dependencies]
+hex-literal = "0.3.4"
+libzeropool-rs = { version = "0.8.1", features = ["multicore"] }
+near-crypto = "0.14.0"
+rand_core = "0.6.4"
+rand = "0.8.5"
+itertools = "0.11.0"
+
+[features]
+default = ["borsh_support", "plonk"]
+# default = ["borsh_support", "rand_support", "plonk"]
+groth16 = []
+plonk = ["halo2_curves", "halo2_proofs", "snark_verifier", "derive_more", "lazy_static", "fawkes-crypto"]
+# ft = ["serde_json"]
+borsh_support = []
+# borsh_support = ["ff-uint/borsh_support"]
+# rand_support = ["ff-uint/rand_support"]
+heavy_tests = []
