@@ -1,19 +1,7 @@
-use std::marker::PhantomData;
-
 use borsh::{BorshDeserialize, BorshSerialize};
-use halo2_curves::{
-    bn256::{Bn256, Fq, Fr, G1Affine},
-};
-use halo2_proofs::{
-    plonk::{VerifyingKey, Circuit},
-    poly::{
-        commitment::{ParamsProver, Params},
-        kzg::commitment::{ParamsKZG},
-    }, SerdeFormat,
-};
+use halo2_curves::bn256::{Fr, G1Affine};
 use snark_verifier::{
     pcs::kzg::{Gwc19, KzgAs, KzgDecidingKey},
-    system::halo2::{compile, Config},
     verifier::{
         self,
         SnarkVerifier,
@@ -28,7 +16,6 @@ use super::{
     },
     transcript::NearTranscript,
     multi_miller_loop::NearBn256,
-    // kzg_decider::*,
 };
 
 type PlonkVerifier = verifier::plonk::PlonkVerifier<KzgAs<NearBn256, Gwc19>>;

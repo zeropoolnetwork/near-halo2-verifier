@@ -1,15 +1,14 @@
 //! `Loader` implementation in native rust.
 
 use borsh::{BorshSerialize, BorshDeserialize};
-use ff_uint::Uint;
-use halo2_curves::{bn256::{Fr, Fq, Fq2, G1Affine, G2Affine}, serde::SerdeObject};
+use halo2_curves::bn256::{Fr, G1Affine};
 use snark_verifier::{
     loader::{EcPointLoader, LoadedEcPoint, LoadedScalar, Loader, ScalarLoader},
-    util::arithmetic::{Curve, CurveAffine, FieldOps, PrimeField},
+    util::arithmetic::FieldOps,
     Error,
 };
 use lazy_static::lazy_static;
-use std::{fmt::Debug, alloc::GlobalAlloc};
+use std::fmt::Debug;
 
 lazy_static! {
     /// NearLoader instance for [`LoadedEcPoint::loader`] and

@@ -1,4 +1,3 @@
-// use snark_verifier::util::arithmetic::MultiMillerLoop;
 pub use halo2_curves::pairing::{
     MultiMillerLoop,
     Engine,

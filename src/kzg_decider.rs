@@ -1,4 +1,4 @@
-use halo2_curves::bn256::{G1Affine, Bn256, G2Affine};
+use halo2_curves::bn256::{G1Affine, G2Affine};
 use snark_verifier::{
     pcs::{
         kzg::{KzgAccumulator, KzgAs, KzgDecidingKey},
@@ -11,7 +11,7 @@ use std::fmt::Debug;
 use crate::util::alt_bn128_pairing_check;
 
 use super::{
-    loader::{NearLoader},
+    loader::NearLoader,
     multi_miller_loop::NearBn256,
 };
 
