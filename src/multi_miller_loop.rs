@@ -1,4 +1,4 @@
-pub use halo2_curves::pairing::{
+use halo2_curves::pairing::{
     MultiMillerLoop,
     Engine,
 };
