@@ -9,14 +9,15 @@ mod util;
 pub use halo2_curves::bn256;
 
 use borsh::{BorshDeserialize, BorshSerialize};
-use halo2_curves::bn256::{Fr, G1Affine};
+use halo2_curves::bn256::{Fr, G1Affine, Bn256};
+use halo2_proofs::{plonk::VerifyingKey, poly::{kzg::commitment::ParamsKZG, commitment::ParamsProver}};
 use snark_verifier::{
     pcs::kzg::{Gwc19, KzgAs, KzgDecidingKey},
     verifier::{
         self,
         SnarkVerifier,
         plonk::PlonkProtocol,
-    },
+    }, system::halo2::compile,
 };
 
 use crate::{
@@ -36,6 +37,31 @@ type PlonkVerifier =
 pub struct PlonkVerifierData {
     pub kzg_dk: KzgDecidingKey<NearBn256>,
     pub protocol: PlonkProtocol<G1Affine, NearLoader>,
+}
+
+impl PlonkVerifierData {
+    /// This creates PlonkVerifierData from paramters and verifier key used by
+    /// traditional halo2 prover. Useful if you want to connect `plonk_verify` in
+    /// place of halo2_proofs verifier.
+    ///
+    /// It fixed the number of verified circuits batch size to 1.
+    pub fn from(
+        params: ParamsKZG<Bn256>,
+        ver_key: VerifyingKey<G1Affine>,
+        num_instance: usize,
+    ) -> Self {
+        let loader = NearLoader;
+        let protocol = compile(
+            &params,
+            &ver_key,
+            snark_verifier::system::halo2::Config::kzg()
+                .set_zk(true)
+                .with_num_proof(1)
+                .with_num_instance(vec![num_instance]),
+        ).loaded(&loader);
+        let kzg_dk = (params.get_g()[0], params.g2(), params.s_g2()).into();
+        PlonkVerifierData { kzg_dk, protocol }
+    }
 }
 
 /// Verify a circuit specified by the [PlonkVerifierData] paramter.
