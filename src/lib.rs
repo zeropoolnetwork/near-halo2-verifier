@@ -45,7 +45,7 @@ impl PlonkVerifierData {
     /// place of halo2_proofs verifier.
     ///
     /// It fixed the number of verified circuits batch size to 1.
-    pub fn from(
+    pub fn new(
         params: ParamsKZG<Bn256>,
         ver_key: VerifyingKey<G1Affine>,
         num_instance: usize,
