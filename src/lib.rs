@@ -72,6 +72,9 @@ pub fn plonk_verify(
 ) -> bool {
     let PlonkVerifierData { kzg_dk, protocol } = plonk_vk;
 
+    dbg!(inputs.len());
+    dbg!(&protocol.num_instance);
+
     let mut transcript = NearTranscript::<_, NearLoader, _, _>::new(proof.as_slice());
 
     let inputs_w = [inputs.into_iter().map(|x| NearLoadedFr(x)).collect()];
